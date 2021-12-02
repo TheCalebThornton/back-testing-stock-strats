@@ -6,6 +6,11 @@ https://github.com/enzoampil/fastquant
 ---https://github.com/ccxt/ccxt/tree/master/python/ccxt (fastquant uses this repo to get crypto info)  
 ---https://github.com/mementum/backtrader (fastquant forked this repo)
 
+# Stochastic alogrithm
+https://www.tradingview.com/pine-script-reference/v1/#fun_stoch
+100 * (close - lowest(low, length)) / (highest(high, length) - lowest(low, length)).
+Ex. sma(stoch(close, high, low, len), smoothK)
+
 # Goal 1
 Test Stochastic trading strat against Crypto markets  
 
