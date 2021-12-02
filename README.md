@@ -3,8 +3,8 @@ Simple repo of Python scripts that back test custom trading strategies. Focus on
 
 # open source library usage tree
 https://github.com/enzoampil/fastquant  
----https://github.com/ccxt/ccxt/tree/master/python/ccxt  
-https://github.com/mementum/backtrader  
+---https://github.com/ccxt/ccxt/tree/master/python/ccxt (fastquant uses this repo to get crypto info)  
+---https://github.com/mementum/backtrader (fastquant forked this repo)
 
 # Goal 1
 Test Stochastic trading strat against Crypto markets  
