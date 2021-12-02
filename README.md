@@ -7,7 +7,7 @@ https://github.com/enzoampil/fastquant
 ---https://github.com/mementum/backtrader (fastquant forked this repo)
 
 # Stochastic alogrithm
-https://www.tradingview.com/pine-script-reference/v1/#fun_stoch
+https://www.tradingview.com/pine-script-reference/v1/#fun_stoch  
 100 * (close - lowest(low, length)) / (highest(high, length) - lowest(low, length)).  
 Ex. sma(stoch(close, high, low, len), smoothK)  
 
