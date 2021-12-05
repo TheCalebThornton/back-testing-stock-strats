@@ -1,5 +1,5 @@
-from fastquant import get_stock_data
-from fastquant import backtest
+from fastquant import get_stock_data, backtest
+from ../strategies.py import smac, rsi, buyAndHold, prophet
 
 def print_best_results_and_config(results):
     # get best parameters on top row
@@ -42,17 +42,30 @@ rsi_res = backtest('rsi',
                  verbose=False
                 )
 
-# intersection = 
-stock_data["custom"] = stock_data.close.pct_change()
-custom_res, history = backtest('custom',
-                 stock_data,
-                 init_cash=cashToTrade,
-                 upper_limit=[0.05, 0.07, 0.5],
-                 lower_limit=[0.03, 0.01, 0.005],
-                 plot=False,
-                 verbose=False,
-                 return_history=True
-                )
+# FaceBook Prophet impl
+# Pull crypto data
+df = get_crypto_data("BTC/USDT", "2019-01-01", "2020-05-31")
+
+# Fit model on closing prices
+ts = df.reset_index()[["dt", "close"]]
+ts.columns = ['ds', 'y']
+m = Prophet(daily_seasonality=True, yearly_seasonality=True).fit(ts)
+forecast = m.make_future_dataframe(periods=0, freq='D')
+
+# Predict and plot
+pred = m.predict(forecast)
+fig1 = m.plot(pred)
+plt.title('BTC/USDT: Forecasted Daily Closing Price', fontsize=25)
+# stock_data["custom"] = stock_data.close.pct_change()
+# custom_res, history = backtest('custom',
+#                  stock_data,
+#                  init_cash=cashToTrade,
+#                  upper_limit=[0.05, 0.07, 0.5],
+#                  lower_limit=[0.03, 0.01, 0.005],
+#                  plot=False,
+#                  verbose=False,
+#                  return_history=True
+#                 )
 
 bnh_res = backtest('buynhold',
                    stock_data,
