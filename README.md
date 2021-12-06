@@ -9,8 +9,8 @@ Navigate to project: py src/crypto/file_name_example.py
 # open source library usage tree
 https://github.com/enzoampil/fastquant  
 ---https://github.com/ccxt/ccxt/tree/master/python/ccxt (fastquant uses this repo to get crypto info)  
----https://github.com/mementum/backtrader (fastquant forked this repo)
-https://github.com/facebook/prophet
+---https://github.com/mementum/backtrader (fastquant forked this repo)  
+https://github.com/facebook/prophet  
 
 # Stochastic alogrithm
 https://www.tradingview.com/pine-script-reference/v1/#fun_stoch  
