@@ -2,9 +2,13 @@
 Simple repo of Python scripts that back test custom trading strategies. Focus on Crypto and S&amp;P500 markets.
 
 # To run the porgram:
+### Without Prophet
 py -m pip install fastquant  
-py -m pip install fbprophet  
 Navigate to project: py src/crypto/file_name_example.py  
+### Running with Prophet:
+Disclaimer! Running pystan on Windows is really hard...  
+Follow Prophet installation details here: https://facebook.github.io/prophet/docs/installation.html  
+You will need to setup pystan, see here: https://pystan2.readthedocs.io/en/latest/windows.html  
 
 # open source library usage tree
 https://github.com/enzoampil/fastquant  
