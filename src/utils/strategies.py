@@ -29,8 +29,8 @@ def smac (dataSet, initCash=10000, plot=False, verbose=False):
        init_cash=initCash,
        fast_period=[7,14,21,28],
        slow_period=[30,45,60,75],
-       plot=False,
-       verbose=False
+       plot=plot,
+       verbose=verbose
       )
 
 def rsi (dataSet, initCash=10000, plot=False, verbose=False):
@@ -40,25 +40,29 @@ def rsi (dataSet, initCash=10000, plot=False, verbose=False):
          rsi_upper=[75, 65],
          rsi_lower=[40, 35],
          rsi_period=[10,14],
-         plot=False,
-         verbose=False
+         plot=plot,
+         verbose=verbose
         )
 
 def buy_and_hold (dataSet, initCash=10000, plot=False, verbose=False):
     return backtest('buynhold',
        dataSet,
        init_cash=initCash,
-       plot=False,
-       verbose=False
+       plot=plot,
+       verbose=verbose
     )
 
-# stock_data["custom"] = stock_data.close.pct_change()
-# custom_res, history = backtest('custom',
-#                  stock_data,
-#                  init_cash=cashToTrade,
-#                  upper_limit=[0.05, 0.07, 0.5],
-#                  lower_limit=[0.03, 0.01, 0.005],
-#                  plot=False,
-#                  verbose=False,
-#                  return_history=True
-#                 )
+
+def stochastic_smac (dataSet, initCash=10000, plot=False, verbose=False):
+    newData = dataSet["custom"] = dataSet.close.pct_change()
+    print (f'Stock data: {stock_data}')
+    custom_res, history = backtest('custom',
+                     newData,
+                     init_cash=initCash,
+                     upper_limit=[0.05, 0.07, 0.5],
+                     lower_limit=[0.03, 0.01, 0.005],
+                     plot=plot,
+                     verbose=verbose,
+                     return_history=True
+                    )
+    return custom_res
