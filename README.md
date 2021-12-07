@@ -6,9 +6,10 @@ Simple repo of Python scripts that back test custom trading strategies. Focus on
 py -m pip install fastquant  
 Navigate to project: py src/crypto/file_name_example.py  
 ### Running with Prophet:
-Disclaimer! Running pystan on Windows is really hard...  
+Disclaimer! Running pystan on Windows is really hard... I don't recommend trying to run /prophet scripts on Windows.  
+Instead, you can run this on a Linux or Mac.  
 Follow Prophet installation details here: https://facebook.github.io/prophet/docs/installation.html  
-You will need to setup pystan, see here: https://pystan2.readthedocs.io/en/latest/windows.html  
+I have included some helpful scripts for testing your installation in /testing_pystan_install  
 
 # open source library usage tree
 https://github.com/enzoampil/fastquant  
@@ -16,16 +17,15 @@ https://github.com/enzoampil/fastquant
 ---https://github.com/mementum/backtrader (fastquant forked this repo)  
 https://github.com/facebook/prophet  
 
-# Stochastic alogrithm
+# Main Goal
+Discover optimal algorithms for Crypto markets  
+
+# Current Task
+Implement the Stochastic SMAC algorithm and backtest it.  
+### # Stochastic algorithm
 https://www.tradingview.com/pine-script-reference/v1/#fun_stoch  
 100 * (close - lowest(low, length)) / (highest(high, length) - lowest(low, length)).  
 Ex. sma(stoch(close, high, low, len), smoothK)  
-
-# Goal 1
-Test Stochastic trading strat against Crypto markets  
-
-# Goal 2
-Test Stochastic trading strat against any S&P500 Ticker  
 
 # Backtesting Pitfalls
 *Overfitting*  
