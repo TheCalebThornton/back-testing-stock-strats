@@ -1,4 +1,5 @@
 from fastquant import backtest
+import backtrader as bt
 
 # results is a list of each strats' top result
 def print_sorted_results(results, verbose=False):
@@ -52,9 +53,36 @@ def buy_and_hold (dataSet, initCash=10000, plot=False, verbose=False):
        verbose=verbose
     )
 
+# WIP - This should look backwards up to 'length' steps away from target
+# def sma (source, data_line, length):
+#     sum = 0.0
+#     for i=0 i<=length-1
+#         sum = (sum + source[i])
+#     return sum / length
+
+# WIP - lowest and highest should look backwards up to 'length' steps away from target
+# def stoch (source, data_line, length):
+#     def lowest (source)
+#     return 100 * (close - lowest(low, length)) / (highest(high, length) - lowest(low, length))
 
 def stochastic_smac (dataSet, initCash=10000, plot=False, verbose=False):
-    newData = dataSet["custom"] = dataSet.close.pct_change()
+    # Stochastic algo
+    len = 1
+    smoothK = 4
+    smoothD = 4
+    upperBound = 64
+    lowerBound = 44
+    # kLine = sma(stoch(close, high, low, length), smoothK)
+    # dLine = sma(kLine, smoothD)
+    # sma(stoch(close, high, low, len), smoothK)
+    # newData = dataSet["custom"] = dataSet.close
+    # newData = dataSet
+    # for row in dataSet:
+    #     kLine = sma(stoch(row.close, row.high, row.low, length), smoothK)
+    #     dLine = sma(kLine, smoothD)
+    #     sma(stoch(close, high, low, len), smoothK)
+    #     row.custom = ""
+    print(f'Modified Data: {newData}')
     print (f'Stock data: {stock_data}')
     custom_res, history = backtest('custom',
                      newData,
