@@ -3,13 +3,17 @@ import backtrader as bt
 
 # results is a list of each strats' top result
 def print_sorted_results(results, verbose=False):
-    results.sort(key=lambda x: x.final_value, reverse=True)
+    try:
+        results.sort(key=lambda x: x.final_value, reverse=True)
+    except:
+        print("Not an Array, can't sort")
     print ('BEST RESULTS IN ORDER DESC:')
     for result in results:
         strat_name =  getattr(result, 'cust_name', None)
         print(f'{strat_name}')
         if verbose :
             print('VERBOSE INFORMATION:')
+            print(f'{result}')
         else:
             init_cash = getattr(result, 'init_cash', None)
             final_value = getattr(result, 'final_value', None)
@@ -38,9 +42,9 @@ def rsi (dataSet, initCash=10000, plot=False, verbose=False):
      return backtest('rsi',
          dataSet,
          init_cash=initCash,
-         rsi_upper=[75, 65],
-         rsi_lower=[40, 35],
-         rsi_period=[10,14],
+         rsi_upper=[75, 64],
+         rsi_lower=[40, 44],
+         rsi_period=[14, 5, 20],
          plot=plot,
          verbose=verbose
         )
