@@ -20,12 +20,13 @@ https://github.com/facebook/prophet
 # Main Goal
 Discover optimal algorithms for Crypto markets  
 
-# Current Task
-Implement the Stochastic SMAC algorithm and backtest it.  
-### # Stochastic algorithm
-https://www.tradingview.com/pine-script-reference/v1/#fun_stoch  
-100 * (close - lowest(low, length)) / (highest(high, length) - lowest(low, length)).  
-Ex. sma(stoch(close, high, low, len), smoothK)  
+# Current Tasks
+#### Implement a custom Stochastic SMAC algorithm and backtest it.  
+- [x] Implement math for STOCH and SMA
+- [ ] Modify the stock dataFrame with buy/sell signal column  
+#### Implement a backtesting sequence that accurately tests using 'prophet' package to advise investments  
+- [ ] Challenge: I have to 'fit' the AI on historical stock data. Then RE-FIT the model for each day we make a trade/signal.
+- [ ] Challenge2: Need to exclude holidays and weekends from the predicitions  
 
 # Backtesting Pitfalls
 *Overfitting*  
