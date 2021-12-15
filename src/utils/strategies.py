@@ -57,44 +57,75 @@ def buy_and_hold (dataSet, initCash=10000, plot=False, verbose=False):
        verbose=verbose
     )
 
-# WIP - This should look backwards up to 'length' steps away from target
-# def sma (source, data_line, length):
-#     sum = 0.0
-#     for i=0 i<=length-1
-#         sum = (sum + source[i])
-#     return sum / length
 
-# WIP - lowest and highest should look backwards up to 'length' steps away from target
-# def stoch (source, data_line, length):
-#     def lowest (source)
-#     return 100 * (close - lowest(low, length)) / (highest(high, length) - lowest(low, length))
 
-def stochastic_smac (dataSet, initCash=10000, plot=False, verbose=False):
+def stochastic_smac_hybrid (dataFrame, initCash=10000, plot=False, verbose=False):
     # Stochastic algo
-    len = 1
+    length = 1
     smoothK = 4
     smoothD = 4
     upperBound = 64
     lowerBound = 44
-    # kLine = sma(stoch(close, high, low, length), smoothK)
-    # dLine = sma(kLine, smoothD)
-    # sma(stoch(close, high, low, len), smoothK)
-    # newData = dataSet["custom"] = dataSet.close
+    def add_data_points (dataFrame):
+        def get_average (prices):
+            sum = 0.0
+            for price in prices:
+                sum = sum + price
+            return sum / len(prices)
+
+        def stoch (close, highest, lowest):
+            return 100 * (close - lowest) / (highest - lowest)
+
+        def get_previous_rows_safe (dataFrame, index, columnName, total):
+            def single_value (target):
+                return dataFrame.at[target, columnName]
+            rows = []
+            for n in range(0, total):
+                if (not (index-n < 0)):
+                    rows.append(single_value(index-n))
+            return rows
+
+        def getCrossUp (kLineCross, dLineCross, prevK, prevD):
+            return True if (prevK < prevD and prevK < lowerBound) and (kLineCross > dLineCross) else False
+        def getCrossDown (kLineCross, dLineCross, prevK, prevD):
+            return True if (prevK > prevD and prevK > upperBound) and (kLineCross < dLineCross) else False
+
+        newFrame = dataFrame.copy().reset_index()
+        newFrame['stoch_low'] = newFrame['low'].rolling(length).min()
+        newFrame['stoch_high'] = newFrame['high'].rolling(length).max()
+        newFrame['stoch_temp'] = stoch(newFrame['close'], newFrame['stoch_high'], newFrame['stoch_low'])
+        for i, row in newFrame.iterrows():
+            kLine = get_average(get_previous_rows_safe(newFrame, i, 'stoch_temp', smoothK))
+            newFrame.at[i, '%K'] = kLine
+            dLine = get_average(get_previous_rows_safe(newFrame, i, '%K', smoothD))
+            newFrame.at[i, '%D'] = dLine
+            x_up = getCrossUp(kLine, dLine,
+                                get_previous_rows_safe(newFrame, i, '%K', 2)[-1],
+                                get_previous_rows_safe(newFrame, i, '%D', 2)[-1])
+            x_down = getCrossDown(kLine, dLine,
+                                get_previous_rows_safe(newFrame, i, '%K', 2)[-1],
+                                get_previous_rows_safe(newFrame, i, '%D', 2)[-1])
+            newFrame.at[i, 'signal'] = 1 if x_up else -1 if x_down else 0
+        return newFrame
+
+    new_frame = add_data_points(dataFrame)
+
+
+    # new_frame = add_data_points(dataFrame)
+
+    # newData = dataSet["custom"] = ''
     # newData = dataSet
-    # for row in dataSet:
-    #     kLine = sma(stoch(row.close, row.high, row.low, length), smoothK)
-    #     dLine = sma(kLine, smoothD)
-    #     sma(stoch(close, high, low, len), smoothK)
-    #     row.custom = ""
-    print(f'Modified Data: {newData}')
-    print (f'Stock data: {stock_data}')
-    custom_res, history = backtest('custom',
-                     newData,
-                     init_cash=initCash,
-                     upper_limit=[0.05, 0.07, 0.5],
-                     lower_limit=[0.03, 0.01, 0.005],
-                     plot=plot,
-                     verbose=verbose,
-                     return_history=True
-                    )
-    return custom_res
+    filtered_data = new_frame.loc[(new_frame['signal'] != 0)]
+    print (f'Stock data: {dataFrame}')
+    print(f'Signals: {filtered_data}')
+    print(f'Modified Data: {new_frame}')
+    # custom_res, history = backtest('custom',
+    #                  newData,
+    #                  init_cash=initCash,
+    #                  upper_limit=[1],
+    #                  lower_limit=[-1],
+    #                  plot=plot,
+    #                  verbose=verbose,
+    #                  return_history=True
+    #                 )
+    # return custom_res
