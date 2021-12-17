@@ -1,5 +1,6 @@
 from fastquant import backtest
 import backtrader as bt
+import numpy as np
 
 # results is a list of each strats' top result
 def print_sorted_results(results, verbose=False):
@@ -9,7 +10,7 @@ def print_sorted_results(results, verbose=False):
         print("Not an Array, can't sort")
     print ('BEST RESULTS IN ORDER DESC:')
     for result in results:
-        strat_name =  getattr(result, 'cust_name', None)
+        strat_name =  getattr(result, 'cust_name', 'N/A')
         print(f'{strat_name}')
         if verbose :
             print('VERBOSE INFORMATION:')
@@ -20,52 +21,60 @@ def print_sorted_results(results, verbose=False):
             pnl = getattr(result, 'pnl', None)
             total_trades = getattr(result, 'total', None)
             # accomdate various parameters for individual strats
+            prcntGain = (final_value / init_cash - 1) * 100
+            print (f'initial_cash: {init_cash}. final_cash: {final_value}. Percentage Gain: {prcntGain}. Total Profit: {pnl}. Total Trades: {total_trades}')
+
+        if getattr(result, 'stoch_hybrid_print', False):
+            custOpts = getattr(result, 'custom_opts', 'N/A')
+            print ('BEST CONFIGURATION PARAMS:')
+            print (f'Stoch Hybrid Options: {custOpts}\n')
+        else:
             param1 = getattr(result, 'fast_period', getattr(result, 'rsi_upper', getattr(result, 'upper_limit', None)))
             param2 = getattr(result, 'slow_period', getattr(result, 'rsi_lower', getattr(result, 'lower_limit', None)))
             param3 = getattr(result, 'rsi_period', None)
-            prcntGain = (final_value / init_cash - 1) * 100
-            print (f'initial_cash: {init_cash}. final_cash: {final_value}. Percentage Gain: {prcntGain}. Total Profit: {pnl}. Total Trades: {total_trades}')
             print ('BEST CONFIGURATION PARAMS:')
             print (f'param1: {param1}. param2: {param2}. param3: {param3} \n')
 
-def smac (dataSet, initCash=10000, plot=False, verbose=False):
+def smac (dataSet, initCash=10000, backtestOptions={}):
     return backtest('smac',
        dataSet,
        init_cash=initCash,
        fast_period=[7,14,21,28],
        slow_period=[30,45,60,75],
-       plot=plot,
-       verbose=verbose
+       plot=getattr(backtestOptions, 'plot', False),
+       verbose=getattr(backtestOptions, 'verbose', False)
       )
 
-def rsi (dataSet, initCash=10000, plot=False, verbose=False):
+def rsi (dataSet, initCash=10000, backtestOptions={}):
      return backtest('rsi',
          dataSet,
          init_cash=initCash,
          rsi_upper=[75, 64],
          rsi_lower=[40, 44],
          rsi_period=[14, 5, 20],
-         plot=plot,
-         verbose=verbose
+         plot=getattr(backtestOptions, 'plot', False),
+         verbose=getattr(backtestOptions, 'verbose', False)
         )
 
-def buy_and_hold (dataSet, initCash=10000, plot=False, verbose=False):
+def buy_and_hold (dataSet, initCash=10000, backtestOptions={}):
     return backtest('buynhold',
        dataSet,
        init_cash=initCash,
-       plot=plot,
-       verbose=verbose
+       plot=getattr(backtestOptions, 'plot', False),
+       verbose=getattr(backtestOptions, 'verbose', False)
     )
 
 
 
-def stochastic_smac_hybrid (dataFrame, initCash=10000, plot=False, verbose=False):
-    # Stochastic algo
-    length = 1
-    smoothK = 4
-    smoothD = 4
-    upperBound = 64
-    lowerBound = 44
+def stochastic_smac_hybrid (dataFrame, initCash=10000,
+                            backtestOptions={},
+                            stratOptions={
+                                'length': 1,
+                                'smoothK': 4,
+                                'smoothD': 4,
+                                'upperBound': 64,
+                                'lowerBound': 44
+                            }):
     def add_data_points (dataFrame):
         def get_average (prices):
             sum = 0.0
@@ -86,18 +95,18 @@ def stochastic_smac_hybrid (dataFrame, initCash=10000, plot=False, verbose=False
             return rows
 
         def getCrossUp (kLineCross, dLineCross, prevK, prevD):
-            return True if (prevK < prevD and prevK < lowerBound) and (kLineCross > dLineCross) else False
+            return True if (prevK < prevD and prevK < stratOptions['lowerBound']) and (kLineCross > dLineCross) else False
         def getCrossDown (kLineCross, dLineCross, prevK, prevD):
-            return True if (prevK > prevD and prevK > upperBound) and (kLineCross < dLineCross) else False
+            return True if (prevK > prevD and prevK > stratOptions['upperBound']) and (kLineCross < dLineCross) else False
 
         newFrame = dataFrame.copy().reset_index()
-        newFrame['stoch_low'] = newFrame['low'].rolling(length).min()
-        newFrame['stoch_high'] = newFrame['high'].rolling(length).max()
+        newFrame['stoch_low'] = newFrame['low'].rolling(stratOptions['length']).min()
+        newFrame['stoch_high'] = newFrame['high'].rolling(stratOptions['length']).max()
         newFrame['stoch_temp'] = stoch(newFrame['close'], newFrame['stoch_high'], newFrame['stoch_low'])
         for i, row in newFrame.iterrows():
-            kLine = get_average(get_previous_rows_safe(newFrame, i, 'stoch_temp', smoothK))
+            kLine = get_average(get_previous_rows_safe(newFrame, i, 'stoch_temp', stratOptions['smoothK']))
             newFrame.at[i, '%K'] = kLine
-            dLine = get_average(get_previous_rows_safe(newFrame, i, '%K', smoothD))
+            dLine = get_average(get_previous_rows_safe(newFrame, i, '%K', stratOptions['smoothD']))
             newFrame.at[i, '%D'] = dLine
             x_up = getCrossUp(kLine, dLine,
                                 get_previous_rows_safe(newFrame, i, '%K', 2)[-1],
@@ -108,24 +117,40 @@ def stochastic_smac_hybrid (dataFrame, initCash=10000, plot=False, verbose=False
             newFrame.at[i, 'signal'] = 1 if x_up else -1 if x_down else 0
         return newFrame
 
-    new_frame = add_data_points(dataFrame)
+    verboseDataFrame = add_data_points(dataFrame)
+    stratData = dataFrame.copy()
+    stratData['custom'] = verboseDataFrame['signal'].values
+    # filtered_data = verboseDataFrame.loc[(verboseDataFrame['signal'] != 0)]
+    # print(f'Signals: {filtered_data}')
+    # print(f'Modified Strat Data: {stratData}')
+    custom_res = backtest('custom',
+                     stratData,
+                     init_cash=initCash,
+                     upper_limit=[0.9],
+                     lower_limit=[-0.9],
+                     plot=getattr(backtestOptions, 'plot', False),
+                     verbose=getattr(backtestOptions, 'verbose', False)
+                    )
+    return custom_res
 
-
-    # new_frame = add_data_points(dataFrame)
-
-    # newData = dataSet["custom"] = ''
-    # newData = dataSet
-    filtered_data = new_frame.loc[(new_frame['signal'] != 0)]
-    print (f'Stock data: {dataFrame}')
-    print(f'Signals: {filtered_data}')
-    print(f'Modified Data: {new_frame}')
-    # custom_res, history = backtest('custom',
-    #                  newData,
-    #                  init_cash=initCash,
-    #                  upper_limit=[1],
-    #                  lower_limit=[-1],
-    #                  plot=plot,
-    #                  verbose=verbose,
-    #                  return_history=True
-    #                 )
-    # return custom_res
+def optimize_stochastic_smac_hybrid_results (stockData):
+    lengths = [1,3,7]
+    smoothKs = [4,1,2]
+    smoothDs = [4,5,3]
+    upperBounds = [64]
+    lowerBounds = [44]
+    cartesian = np.array(np.meshgrid(lengths,smoothKs,smoothDs,upperBounds,lowerBounds)).T.reshape(-1,5)
+    runningResults = []
+    for optionSet in cartesian:
+        options_parsed = {
+            'length': optionSet[0],
+            'smoothK': optionSet[1],
+            'smoothD': optionSet[2],
+            'upperBound': optionSet[3],
+            'lowerBound': optionSet[4]
+        }
+        temp_res = stochastic_smac_hybrid(stockData, stratOptions=options_parsed).iloc[0]
+        temp_res['stoch_hybrid_print'] = True
+        temp_res['custom_opts'] = options_parsed
+        runningResults.append(temp_res)
+    return runningResults
