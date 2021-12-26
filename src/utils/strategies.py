@@ -20,9 +20,10 @@ def print_sorted_results(results, verbose=False):
             final_value = getattr(result, 'final_value', None)
             pnl = getattr(result, 'pnl', None)
             total_trades = getattr(result, 'total', None)
+            win_rate = getattr(result, 'win_rate', 1)
             # accomdate various parameters for individual strats
             prcntGain = (final_value / init_cash - 1) * 100
-            print (f'initial_cash: {init_cash}. final_cash: {final_value}. Percentage Gain: {prcntGain}. Total Profit: {pnl}. Total Trades: {total_trades}')
+            print (f'initial_cash: {init_cash}. final_cash: {final_value}. Percentage Gain: {prcntGain}. Total Profit: {pnl}. Total Trades: {total_trades}. Win Rate: {win_rate}')
 
         if getattr(result, 'stoch_hybrid_print', False):
             custOpts = getattr(result, 'custom_opts', 'N/A')
@@ -44,6 +45,19 @@ def smac (dataSet, initCash=10000, backtestOptions={}):
        plot=getattr(backtestOptions, 'plot', False),
        verbose=getattr(backtestOptions, 'verbose', False)
       )
+
+def macd (dataSet, initCash=10000, backtestOptions={}):
+  return backtest('macd',
+     dataSet,
+     init_cash=initCash,
+     fast_period=[12],
+     slow_period=[26],
+     signal_period=[9],
+     sma_period=[30],
+     dir_period=[10],
+     plot=getattr(backtestOptions, 'plot', False),
+     verbose=getattr(backtestOptions, 'verbose', False)
+    )
 
 def rsi (dataSet, initCash=10000, backtestOptions={}):
      return backtest('rsi',
@@ -120,25 +134,26 @@ def stochastic_smac_hybrid (dataFrame, initCash=10000,
     verboseDataFrame = add_data_points(dataFrame)
     stratData = dataFrame.copy()
     stratData['custom'] = verboseDataFrame['signal'].values
-    # filtered_data = verboseDataFrame.loc[(verboseDataFrame['signal'] != 0)]
-    # print(f'Signals: {filtered_data}')
+    filtered_data = verboseDataFrame.loc[(verboseDataFrame['signal'] != 0)]
+    print(f'Signals: {filtered_data}')
     # print(f'Modified Strat Data: {stratData}')
-    custom_res = backtest('custom',
+    custom_res, history = backtest('custom',
                      stratData,
                      init_cash=initCash,
                      upper_limit=[0.9],
                      lower_limit=[-0.9],
                      plot=getattr(backtestOptions, 'plot', False),
-                     verbose=getattr(backtestOptions, 'verbose', False)
+                     verbose=getattr(backtestOptions, 'verbose', False),
+                     return_history=True
                     )
     return custom_res
 
 def optimize_stochastic_smac_hybrid_results (stockData):
-    lengths = [1,3,7]
-    smoothKs = [4,1,2]
-    smoothDs = [4,5,3]
-    upperBounds = [64]
-    lowerBounds = [44]
+    lengths = [1,2,3,7]
+    smoothKs = [1,3,4]
+    smoothDs = [4,6,7]
+    upperBounds = [64, 80]
+    lowerBounds = [44, 35, 20]
     cartesian = np.array(np.meshgrid(lengths,smoothKs,smoothDs,upperBounds,lowerBounds)).T.reshape(-1,5)
     runningResults = []
     for optionSet in cartesian:
