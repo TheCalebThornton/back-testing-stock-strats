@@ -1,7 +1,8 @@
 # back-testing-stock-strats
 Simple repo of Python scripts that back test custom trading strategies. Focus on Crypto and S&amp;P500 markets.
 
-# To run the porgram:
+# To run the porgram:  
+Works best on Python 3.9
 ### Without Prophet
 py -m pip install fastquant  
 Navigate to project: py src/crypto/file_name_example.py  
@@ -23,7 +24,8 @@ Discover optimal algorithms for Crypto markets
 # Current Tasks
 #### Implement a custom Stochastic SMAC algorithm and backtest it.  
 - [x] Implement math for STOCH and SMA
-- [ ] Modify the stock dataFrame with buy/sell signal column  
+- [x] Modify the stock dataFrame with buy/sell signal column  
+- [ ] Add a function that will find optimal parameters across multiple time frames
 #### Implement a backtesting sequence that accurately tests using 'prophet' package to advise investments  
 - [ ] Challenge: I have to 'fit' the AI on historical stock data. Then RE-FIT the model for each day we make a trade/signal.
 - [ ] Challenge2: Need to exclude holidays and weekends from the predicitions  
