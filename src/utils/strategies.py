@@ -130,25 +130,25 @@ def stochastic_smac_hybrid (dataFrame, initCash=10000,
             x_down = getCrossDown(kLine, dLine,
                                 get_previous_rows_safe(newFrame, i, '%K', 2)[-1],
                                 get_previous_rows_safe(newFrame, i, '%D', 2)[-1])
-            newFrame.at[i, 'signal'] = 1 if x_up else -1 if x_down else 0
+            newFrame.at[i, 'signal'] = -1 if x_up else 1 if x_down else 0
         return newFrame
 
     verboseDataFrame = add_data_points(dataFrame)
     stratData = dataFrame.copy()
     stratData['custom'] = verboseDataFrame['signal'].values
+    # print(f'verboseDataFrame = {verboseDataFrame}')
     filtered_data = verboseDataFrame.loc[(verboseDataFrame['signal'] != 0)]
     print(f'Signals: {filtered_data}')
-    # print(f'Modified Strat Data: {stratData}')
     custom_res, history = backtest('custom',
                      stratData,
                      init_cash=initCash,
-                     upper_limit=[0.9],
-                     lower_limit=[-0.9],
+                     upper_limit=[0],
+                     lower_limit=[0],
                      plot=getattr(backtestOptions, 'plot', False),
-                     verbose=getattr(backtestOptions, 'verbose', False),
+                     verbose=getattr(backtestOptions, 'verbose', 1),
                      return_history=True
                     )
-    return custom_res
+    return custom_res, history
 
 #DEPRECATED - This has been moved to be more generic of an impl
 def optimize_stochastic_smac_hybrid_results (stockDataFrames):
@@ -177,13 +177,13 @@ def optimize_stochastic_smac_hybrid_results (stockDataFrames):
             'lowerBound': optionSet[4]
         }
         for stockData in stockDataFrames:
-            temp_res = stochastic_smac_hybrid(stockData, stratOptions=options_parsed).iloc[0]
+            all_temp_res, hist = stochastic_smac_hybrid(stockData, stratOptions=options_parsed)
+            temp_res = all_temp_res.iloc[0]
             temp_res['stoch_hybrid_print'] = True
             temp_res['custom_opts'] = options_parsed
             runningOptionResults.append(temp_res)
         resultSetForStockFrames = pd.DataFrame(data={
             'configuration': f'{options_parsed}',
-            # 'results': runningOptionResults,
             'average_gain': get_avg_on_column(runningOptionResults, 'pnl'),
             'average_win_rate': get_avg_on_column(runningOptionResults, 'win_rate'),
             'average_total_trades': get_avg_on_column(runningOptionResults, 'total')
