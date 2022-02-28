@@ -12,11 +12,10 @@ print("Today's date:", today)
 OPTIMAL_UPPER = 2.0
 OPTIMAL_LOWER = -2.0
 
-ticker = "BTC/USDT"
-stock_data = get_crypto_data(ticker,
-                            "2016-12-09",
-                            today,
-                            time_resolution='1d')
+ticker = "TQQQ"
+stock_data = get_stock_data(ticker,
+                            "2021-12-06",
+                            "2021-12-15")
 
 print (stock_data)
-give_me_next_signal(stock_data, OPTIMAL_UPPER, OPTIMAL_LOWER)
+# give_me_next_signal(stock_data, OPTIMAL_UPPER, OPTIMAL_LOWER)
