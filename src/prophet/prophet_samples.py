@@ -11,7 +11,7 @@ from src.utils.strategies import smac, rsi, buy_and_hold, print_sorted_results
 # stock_data = get_crypto_data(ticker,
 #                          "2020-12-09",
 #                          "2021-12-09",
-#                          time_resolution='1d'
+#                          time_resolution='1d' 
 #                         )
 ticker = "ETH/USDT"
 stock_data = get_crypto_data(ticker,
