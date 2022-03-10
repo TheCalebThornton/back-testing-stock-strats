@@ -4,8 +4,8 @@ from src.utils.strategies import *
 ticker = "TQQQ"
 cashToTrade = 10000
 stock_data = get_stock_data(ticker,
-                            "2021-12-25",
-                            "2022-01-29")
+                            "2021-01-01",
+                            "2022-03-07")
 print (stock_data)
 
 # the result set should come back pre-sorted, so i'm grabbing the top one.
