@@ -23,9 +23,9 @@ Discover optimal algorithms for Crypto markets
 
 # Current Tasks
 #### Implement a custom Stochastic SMAC algorithm and backtest it.  
-- [x] Implement math for STOCH and SMA
-- [x] Modify the stock dataFrame with buy/sell signal column  
-- [ ] Add a function that will find optimal parameters across multiple time frames
+- [x] Add a function that will find optimal parameters across multiple time frames
+- [ ] Add partial buys (ie. 60% buy first signal, 40% buy second signal)
+- [ ] Add short position testing
 #### Implement a backtesting sequence that accurately tests using 'prophet' package to advise investments  
 - [ ] Challenge: I have to 'fit' the AI on historical stock data. Then RE-FIT the model for each day we make a trade/signal.
 - [ ] Challenge2: Need to exclude holidays and weekends from the predicitions  
