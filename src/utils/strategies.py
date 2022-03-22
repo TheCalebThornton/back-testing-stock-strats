@@ -40,12 +40,12 @@ def print_sorted_results(results, verbose=False):
 
 def smac (dataSet, initCash=10000, backtestOptions={}):
     return backtest('smac',
-       dataSet,
-       init_cash=initCash,
-       fast_period=[7,14,21,28],
-       slow_period=[30,45,60,75],
-       plot=getattr(backtestOptions, 'plot', False),
-       verbose=getattr(backtestOptions, 'verbose', False)
+        dataSet,
+        init_cash=initCash,
+        fast_period=[7,14,21,28],
+        slow_period=[30,45,60,75],
+        plot=backtestOptions.get('plot', False),
+        verbose=backtestOptions.get('verbose', False)
       )
 
 def macd (dataSet, initCash=10000, backtestOptions={}):
@@ -57,8 +57,8 @@ def macd (dataSet, initCash=10000, backtestOptions={}):
      signal_period=[9],
      sma_period=[30],
      dir_period=[10],
-     plot=getattr(backtestOptions, 'plot', False),
-     verbose=getattr(backtestOptions, 'verbose', False)
+     plot=backtestOptions.get('plot', False),
+     verbose=backtestOptions.get('verbose', False)
     )
 
 def rsi (dataSet, initCash=10000, backtestOptions={}):
@@ -68,16 +68,16 @@ def rsi (dataSet, initCash=10000, backtestOptions={}):
          rsi_upper=[75, 64],
          rsi_lower=[40, 44],
          rsi_period=[14, 5, 20],
-         plot=getattr(backtestOptions, 'plot', False),
-         verbose=getattr(backtestOptions, 'verbose', False)
+         plot=backtestOptions.get('plot', False),
+         verbose=backtestOptions.get('verbose', False)
         )
 
 def buy_and_hold (dataSet, initCash=10000, backtestOptions={}):
     return backtest('buynhold',
-       dataSet,
-       init_cash=initCash,
-       plot=getattr(backtestOptions, 'plot', False),
-       verbose=getattr(backtestOptions, 'verbose', False)
+        dataSet,
+        init_cash=initCash,
+        plot=backtestOptions.get('plot', False),
+        verbose=backtestOptions.get('verbose', False)
     )
 
 
@@ -136,16 +136,15 @@ def stochastic_smac_hybrid (dataFrame, initCash=10000,
     verboseDataFrame = add_data_points(dataFrame)
     stratData = dataFrame.copy()
     stratData['custom'] = verboseDataFrame['signal'].values
-    # print(f'verboseDataFrame = {verboseDataFrame}')
-    filtered_data = verboseDataFrame.loc[(verboseDataFrame['signal'] != 0)]
-    print(f'Signals: {filtered_data}')
     custom_res, history = backtest('custom',
                      stratData,
                      init_cash=initCash,
+                     allow_short=backtestOptions.get('allow_short', False),
+                     short_max=backtestOptions.get('short_max', 1.5),
                      upper_limit=[0],
                      lower_limit=[0],
-                     plot=getattr(backtestOptions, 'plot', False),
-                     verbose=getattr(backtestOptions, 'verbose', 1),
+                     plot=backtestOptions.get('plot', False),
+                     verbose=backtestOptions.get('verbose', 1),
                      return_history=True
                     )
     return custom_res, history
@@ -156,7 +155,8 @@ def optimize_stochastic_smac_hybrid_results (stockDataFrames):
     smoothKs = [1,2,3,4,5,6]
     smoothDs = [1,2,3,4,5,6]
     upperBounds = [65, 80]
-    lowerBounds = [45, 20]
+    lowerBounds = [45, 20],
+    short=[True, False]
 
     def get_avg_on_column (iterable, property):
         sum = 0.0
@@ -164,7 +164,7 @@ def optimize_stochastic_smac_hybrid_results (stockDataFrames):
             sum = sum + item[property]
         return sum / len(iterable)
 
-    allPossibleCombos = np.array(np.meshgrid(lengths,smoothKs,smoothDs,upperBounds,lowerBounds)).T.reshape(-1,5)
+    allPossibleCombos = np.array(np.meshgrid(lengths,smoothKs,smoothDs,upperBounds,lowerBounds,short)).T.reshape(-1,6)
     runningResults = []
 
     for optionSet in allPossibleCombos:
@@ -176,14 +176,18 @@ def optimize_stochastic_smac_hybrid_results (stockDataFrames):
             'upperBound': optionSet[3],
             'lowerBound': optionSet[4]
         }
+        backtest_options_parsed = {
+            'allow_short': optionSet[5]
+        }
         for stockData in stockDataFrames:
-            all_temp_res, hist = stochastic_smac_hybrid(stockData, stratOptions=options_parsed)
+            all_temp_res, hist = stochastic_smac_hybrid(stockData, stratOptions=options_parsed, backtestOptions=backtest_options_parsed)
             temp_res = all_temp_res.iloc[0]
             temp_res['stoch_hybrid_print'] = True
             temp_res['custom_opts'] = options_parsed
             runningOptionResults.append(temp_res)
         resultSetForStockFrames = pd.DataFrame(data={
-            'configuration': f'{options_parsed}',
+            'strat_config': f'{options_parsed}',
+            'backtest_config': f'{backtest_options_parsed}',
             'average_gain': get_avg_on_column(runningOptionResults, 'pnl'),
             'average_win_rate': get_avg_on_column(runningOptionResults, 'win_rate'),
             'average_total_trades': get_avg_on_column(runningOptionResults, 'total')
