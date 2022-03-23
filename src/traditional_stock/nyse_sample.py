@@ -1,4 +1,8 @@
 from fastquant import get_stock_data, backtest
+import sys
+import os
+# Python imports are super annoying - modify this path with your own
+sys.path.append(os.path.abspath("/Users/cthornton/devl/workspace/back-testing-stock-strats"))
 from src.utils.strategies import *
 
 ticker = "TQQQ"
@@ -9,10 +13,10 @@ stock_data = get_stock_data(ticker,
 print (stock_data)
 
 # the result set should come back pre-sorted, so i'm grabbing the top one.
-# smac_res = smac(stock_data).iloc[0]
-# smac_res.cust_name='SMAC'
-# rsi_res = rsi(stock_data).iloc[0]
-# rsi_res.cust_name='RSI'
+smac_res = smac(stock_data).iloc[0]
+smac_res.cust_name='SMAC'
+rsi_res = rsi(stock_data).iloc[0]
+rsi_res.cust_name='RSI'
 bnh_res = buy_and_hold(stock_data).iloc[0]
 bnh_res.cust_name='BuyNHold'
 

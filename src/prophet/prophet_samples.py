@@ -11,7 +11,7 @@ from src.utils.strategies import smac, rsi, buy_and_hold, print_sorted_results
 # stock_data = get_crypto_data(ticker,
 #                          "2020-12-09",
 #                          "2021-12-09",
-#                          time_resolution='1d' 
+#                          time_resolution='1d'
 #                         )
 ticker = "ETH/USDT"
 stock_data = get_crypto_data(ticker,
@@ -33,7 +33,7 @@ rsi_res = rsi(stock_data).iloc[0]
 rsi_res.cust_name='RSI'
 bnh_res = buy_and_hold(stock_data).iloc[0]
 bnh_res.cust_name='BuyNHold'
-proph_res = prophet(train_data, stock_data).iloc[0]
+proph_res = prophet(stock_data).iloc[0]
 proph_res.cust_name='Prophet'
 
 print (f'INVESTMENT STRAT RESULTS - {ticker}')

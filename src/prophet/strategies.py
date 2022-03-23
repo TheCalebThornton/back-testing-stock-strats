@@ -2,6 +2,7 @@ from fastquant import get_crypto_data, backtest
 import pandas as pd
 from prophet import Prophet
 from matplotlib import pyplot as plt
+from datetime import date, timedelta
 
 def stan_init(m):
     """Retrieve parameters from a trained model.
@@ -23,19 +24,21 @@ def stan_init(m):
         res[pname] = m.params[pname][0][0]
     for pname in ['delta', 'beta']:
         res[pname] = m.params[pname][0]
+    print(f'Trained model: {res}')
     return res
 
-def train_and_predict_next_day (trainSet, currentModel):
+def train_and_predict_next_day (trainSet, currentModel=None):
     ts = trainSet.reset_index()[["dt", "close"]]
     ts.columns = ['ds', 'y']
     m = None
     try:
         # Try to warm-load with existing model
-        m = Prophet(daily_seasonality=True, yearly_seasonality=True).fit(ts, init=stan_init(currentModel))
+        m_model = stan_init(currentModel)
+        m = Prophet(daily_seasonality=True, yearly_seasonality=True).fit(ts, init=m_model)
     except:
         m = Prophet(daily_seasonality=True, yearly_seasonality=True).fit(ts)
     # this is asking prophet to predict 1(period) Day(frequency) into the future
-    forecast = m.make_future_dataframe(periods=1, freq='D', include_history=False)
+    forecast = m.make_future_dataframe(periods=1, freq='D', include_history=True)
     return m.predict(forecast)
 
 # Facebook's Prophet AI predictor
@@ -44,20 +47,20 @@ def prophet (dataSet, initCash=10000, plot=False, verbose=False, graph=False):
     dailyTrainSet = dataSet.copy().reset_index()
     daily_yhats = []
     dailyPredModel = None
-    for index, row in dailyTrainSet.iterrows():
-        # need to have at least 2 entries of data
-        if (index > 1):
-            trainSet = dailyTrainSet.iloc[:index]
-            dailyPredModel = train_and_predict_next_day(trainSet, dailyPredModel)
-            daily_yhats.append(dailyPredModel.yhat)
-        else:
-            daily_yhats.append(row.close)
+    # for index, row in dailyTrainSet.iterrows():
+    #     # need to have at least 2 entries of data
+    #     if (index > 1):
+    #         trainSet = dailyTrainSet.iloc[:index]
+    #         dailyPredModel = train_and_predict_next_day(trainSet, dailyPredModel)
+    #         daily_yhats.append(dailyPredModel.yhat)
+    #     else:
+    #         daily_yhats.append(row.close)
     # yhat_series = pd.Series(daily_yhats).pct_change().multiply(100)
-    yhat_series = pd.Series(daily_yhats)
-    dailyTrainSet["custom"] = yhat_series.tolist()
-    print(f'yhat_series {dailyPredModel}')
-    print(f'yhat_series {yhat_series}')
-    print(f'dailyTrainSet {dailyTrainSet}')
+    next_day_pred = train_and_predict_next_day(dataSet)
+    print(f'predicition {next_day_pred[["ds", "yhat"]]}')
+    # with pd.option_context('display.max_rows', None, 'display.max_columns', None):
+    #     print(next_day_pred)
+    # print(f'dataSet {dataSet}')
     # Convert predictions to expected 1 day return
 
     # Upper and lower values here describe the forecasted percentage gain or loss
@@ -77,9 +80,12 @@ def get_predictions (dataSet, include_hist=True):
     ts = dataSet.reset_index()[["dt", "close"]]
     ts.columns = ['ds', 'y']
     print(f'TIME SERIES: {ts}')
-    m = Prophet(daily_seasonality=False, weekly_seasonality=True, yearly_seasonality=True).fit(ts)
-    # this is asking prophet to predict 1(period) Day(frequency) into the future
-    future = m.make_future_dataframe(periods=1, freq='D')
+    m = Prophet(daily_seasonality=False, weekly_seasonality=False, yearly_seasonality=False).fit(ts)
+    # All this does is create a dataframe of dates I want to have predicitions for.
+    # future = m.make_future_dataframe(periods=1, freq='D', include_history=True)
+    today = date.today()
+    tomorrow = today + timedelta(days=1)
+    future = pd.DataFrame({'ds': [today, tomorrow]})
     print(f'FUTURE: {future}')
     pred = m.predict(future)
     out = pred[['ds', 'yhat', 'yhat_lower', 'yhat_upper']].tail()
