@@ -1,4 +1,8 @@
 from fastquant import get_stock_data, backtest
+import sys
+import os
+# Python imports are super annoying - modify this path with your own
+sys.path.append(os.path.abspath("/Users/cthornton/devl/workspace/back-testing-stock-strats"))
 from src.utils.strategies import *
 
 ticker = "TQQQ"
