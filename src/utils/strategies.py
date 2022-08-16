@@ -45,7 +45,9 @@ def smac (dataSet, initCash=10000, backtestOptions={}):
         fast_period=[7,14,21,28],
         slow_period=[30,45,60,75],
         plot=backtestOptions.get('plot', False),
-        verbose=backtestOptions.get('verbose', False)
+        verbose=backtestOptions.get('verbose', False),
+        return_history=backtestOptions.get('return_history', False),
+        allow_short=backtestOptions.get('allow_short', False)
       )
 
 def macd (dataSet, initCash=10000, backtestOptions={}):
@@ -58,7 +60,9 @@ def macd (dataSet, initCash=10000, backtestOptions={}):
      sma_period=[30],
      dir_period=[10],
      plot=backtestOptions.get('plot', False),
-     verbose=backtestOptions.get('verbose', False)
+     verbose=backtestOptions.get('verbose', False),
+     return_history=backtestOptions.get('return_history', False),
+     allow_short=backtestOptions.get('allow_short', False)
     )
 
 def rsi (dataSet, initCash=10000, backtestOptions={}):
@@ -69,7 +73,9 @@ def rsi (dataSet, initCash=10000, backtestOptions={}):
          rsi_lower=[40, 44],
          rsi_period=[14, 5, 20],
          plot=backtestOptions.get('plot', False),
-         verbose=backtestOptions.get('verbose', False)
+         verbose=backtestOptions.get('verbose', False),
+         return_history=backtestOptions.get('return_history', False),
+         allow_short=backtestOptions.get('allow_short', False)
         )
 
 def buy_and_hold (dataSet, initCash=10000, backtestOptions={}):
@@ -155,7 +161,7 @@ def optimize_stochastic_smac_hybrid_results (stockDataFrames):
     smoothKs = [1,2,3,4,5,6]
     smoothDs = [1,2,3,4,5,6]
     upperBounds = [65, 80]
-    lowerBounds = [45, 20],
+    lowerBounds = [45, 20]
     short=[True, False]
 
     def get_avg_on_column (iterable, property):
@@ -179,12 +185,14 @@ def optimize_stochastic_smac_hybrid_results (stockDataFrames):
         backtest_options_parsed = {
             'allow_short': optionSet[5]
         }
+
         for stockData in stockDataFrames:
             all_temp_res, hist = stochastic_smac_hybrid(stockData, stratOptions=options_parsed, backtestOptions=backtest_options_parsed)
             temp_res = all_temp_res.iloc[0]
             temp_res['stoch_hybrid_print'] = True
             temp_res['custom_opts'] = options_parsed
             runningOptionResults.append(temp_res)
+
         resultSetForStockFrames = pd.DataFrame(data={
             'strat_config': f'{options_parsed}',
             'backtest_config': f'{backtest_options_parsed}',
@@ -195,10 +203,11 @@ def optimize_stochastic_smac_hybrid_results (stockDataFrames):
         runningResults.append(resultSetForStockFrames)
 
     for res in runningResults:
-        file_path = 'src/testing_results/optimizerResults.csv'
+        # Outputs to {home}/Documents/optimizer_out_test.csv
+        file_path = os.path.join(os.path.expanduser('~'),'Documents','optimizer_out.csv')
         if not os.path.isfile(file_path):
            res.to_csv(file_path)
-        else: # else it exists so append without writing the header
+        else: # else file exists so append without writing the header
            res.to_csv(file_path, mode='a', header=False)
 
     return runningResults
