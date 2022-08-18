@@ -2,7 +2,6 @@ from fastquant import get_stock_data, get_crypto_data, backtest
 from src.utils.strategies import *
 # from src.utils.optimizer import *
 
-# ticker = "ETH/USDT"
 ticker = "TQQQ"
 cashToTrade = 10000
 stock_data_1 = get_stock_data(ticker,
@@ -23,12 +22,6 @@ stock_data_5 = get_stock_data(ticker,
 stock_data_6 = get_stock_data(ticker,
                             "2021-12-01",
                             "2022-08-15")
-# stock_data_1 = get_crypto_data(ticker,
-#                          "2019-01-01",
-#                          "2021-12-18",
-#                          time_resolution='1d'
-#                         )
-
 
 # print (stock_data)
 # tradingStratParams = {
